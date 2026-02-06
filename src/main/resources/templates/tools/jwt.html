@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: html(content=~{::main}, pageTitle='JWT Decoder')}">
+<main>
+    <div class="max-w-4xl mx-auto space-y-6">
+        <!-- Input Section -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">JWT Token</h3>
+            <form hx-post="/tools/jwt/decode" hx-target="#decode-result" hx-swap="innerHTML">
+                <textarea name="token" id="jwt-input"
+                          class="w-full h-32 p-4 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Paste your JWT token here...&#10;&#10;Example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"></textarea>
+                <div class="mt-4 flex gap-3">
+                    <button type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        Decode
+                        <span class="htmx-indicator">
+                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                    <button type="button" onclick="document.getElementById('jwt-input').value=''"
+                            class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Decode Result Section -->
+        <div id="decode-result">
+            <!-- Results will be inserted here via HTMX -->
+        </div>
+
+        <!-- Signature Verification Section -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Verify Signature</h3>
+            <form hx-post="/tools/jwt/verify" hx-target="#verify-result" hx-swap="innerHTML">
+                <input type="hidden" name="token" id="verify-token">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Secret Key</label>
+                    <input type="text" name="secret"
+                           class="w-full p-3 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Enter your secret key...">
+                </div>
+                <button type="submit"
+                        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Verify Signature
+                </button>
+            </form>
+            <div id="verify-result" class="mt-4">
+                <!-- Verification result will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sync token input with verify form
+        document.getElementById('jwt-input').addEventListener('input', function() {
+            document.getElementById('verify-token').value = this.value;
+        });
+    </script>
+</main>
+</html>
+
+<!-- Result Fragment -->
+<th:block th:fragment="result">
+    <div th:if="${result.error}" class="bg-red-50 border border-red-200 rounded-xl p-6">
+        <div class="flex items-center gap-3 text-red-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span th:text="${result.error}">Error message</span>
+        </div>
+    </div>
+
+    <div th:if="${result.success}" class="space-y-4">
+        <!-- Expiration Warning -->
+        <div th:if="${result.isExpired}" class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+            <div class="flex items-center gap-3 text-yellow-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span>This token has expired!</span>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-gray-800">Header</h4>
+                <button onclick="copyToClipboard(document.getElementById('header-content').textContent, this)"
+                        class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors">
+                    Copy
+                </button>
+            </div>
+            <pre id="header-content" class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono text-gray-800" th:text="${result.header}"></pre>
+        </div>
+
+        <!-- Payload -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-gray-800">Payload</h4>
+                <button onclick="copyToClipboard(document.getElementById('payload-content').textContent, this)"
+                        class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors">
+                    Copy
+                </button>
+            </div>
+            <pre id="payload-content" class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono text-gray-800" th:text="${result.payload}"></pre>
+
+            <!-- Timestamps -->
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div th:if="${result.iatFormatted}" class="bg-blue-50 p-3 rounded-lg">
+                    <span class="text-blue-600 font-medium">Issued At (iat):</span>
+                    <p class="text-gray-700" th:text="${result.iatFormatted}"></p>
+                </div>
+                <div th:if="${result.expFormatted}" class="p-3 rounded-lg"
+                     th:class="${result.isExpired ? 'bg-red-50' : 'bg-green-50'}">
+                    <span th:class="${result.isExpired ? 'text-red-600' : 'text-green-600'}" class="font-medium">Expires (exp):</span>
+                    <p class="text-gray-700" th:text="${result.expFormatted}"></p>
+                </div>
+                <div th:if="${result.nbfFormatted}" class="bg-purple-50 p-3 rounded-lg">
+                    <span class="text-purple-600 font-medium">Not Before (nbf):</span>
+                    <p class="text-gray-700" th:text="${result.nbfFormatted}"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signature -->
+        <div th:if="${result.hasSignature}" class="bg-white rounded-xl shadow-sm border p-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-gray-800">Signature</h4>
+                <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">Present</span>
+            </div>
+            <code class="block bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono text-gray-600 break-all" th:text="${result.signature}"></code>
+        </div>
+    </div>
+</th:block>
+
+<!-- Verify Result Fragment -->
+<th:block th:fragment="verifyResult">
+    <div th:if="${verifyResult.error}" class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex items-center gap-3 text-red-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span th:text="${verifyResult.error}">Error</span>
+        </div>
+    </div>
+
+    <div th:if="${verifyResult.valid}" class="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div class="flex items-center gap-3 text-green-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span th:text="${verifyResult.message}">Valid</span>
+            <span class="ml-2 px-2 py-1 text-xs bg-green-200 rounded" th:text="${verifyResult.algorithm}">HS256</span>
+        </div>
+    </div>
+
+    <div th:if="${verifyResult.valid == false and verifyResult.error == null}" class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex items-center gap-3 text-red-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span th:text="${verifyResult.message}">Invalid</span>
+        </div>
+    </div>
+</th:block>
