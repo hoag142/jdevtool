@@ -79,3 +79,42 @@ Example: JWT tool
 ## Configuration
 
 Redis connection configured via environment variable `SPRING_REDIS_HOST` (default: localhost).
+
+## Java Code Commenting Rules — Enterprise Best Practices
+
+### Core Principles
+1. **Javadoc for APIs**: Use Javadoc for all public/protected APIs (classes, interfaces, methods). Include purpose, params, return, exceptions, versioning.
+
+2. **Explain Why, Not What**: Comments must explain why (business rules, constraints, trade-offs), not restate what the code does.
+
+3. **Maintain Accuracy**: Keep comments short, accurate, and always updated with code changes.
+
+4. **Avoid Obvious Comments**: Refactor unclear code instead of over-commenting.
+
+5. **Standardized Markers**: Use standardized TODO/FIXME with issue IDs and clear actions.
+
+6. **No Dead Code**: Do not keep commented-out code in the repository.
+
+7. **Non-Functional Requirements**: Document non-functional constraints (performance, memory, limits, SLAs).
+
+8. **Concurrency Documentation**: Clearly comment concurrency, locking, thread-safety, and invariants.
+
+9. **Package Documentation**: Provide package/module documentation (package-info.java) for scope and conventions.
+
+10. **Error Handling**: Document error handling, retry, and idempotency policies.
+
+11. **Standard Language**: Follow the team's standard language and style (typically English in enterprise).
+
+12. **Usage Examples**: Add usage examples for complex APIs or workflows.
+
+13. **Reference Context**: Reference issues/requirements/PRs when comments explain decisions.
+
+14. **Enforce with Tools**: Enforce rules with tooling (Checkstyle, PR templates, linters).
+
+15. **No Secrets**: Never include secrets or sensitive data in comments.
+
+16. **Deprecation**: Properly document deprecated APIs with alternatives and timelines.
+
+17. **Comments vs Logs**: Distinguish comments (design intent) from logs (runtime diagnostics).
+
+18. **Code Review**: Review comment quality as part of code review.
